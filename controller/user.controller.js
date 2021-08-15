@@ -1,6 +1,7 @@
 var Users = require('../models/User');
 const Joi = require('@hapi/joi');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const schemaRegister = Joi.object({
     name: Joi.string().min(6).max(255).required(),
@@ -66,13 +67,16 @@ const login = async (req, res) =>{
 
     // validar password del req. con el de la BD
     const validPassword = await bcrypt.compare(req.body.password, user.password);
-    
     if (!validPassword) return res.status(400).json({ error: 'contraseña no válida' })
     
+    const token = jwt.sign({
+        name: user.name,
+        id: user._id
+    }, process.env.TOKEN_SECRET);
     // Si todo is OK 
-    res.status(200).json({
-            status: true,
-            data: user.name
+    res.header('auth-token', token).json({
+        status: true,
+        data: {token}
     })
     } catch (error) {
         res.status(400).json({
@@ -82,7 +86,17 @@ const login = async (req, res) =>{
     }
 }
 
+const list = async (req,res) => {
+    res.json({
+        status: true,
+        data: {
+            title: 'mi ruta protegida',
+            user: req.user
+        }
+    })
+}
 module.exports = {
     addUser,
-    login
+    login,
+    list
 }

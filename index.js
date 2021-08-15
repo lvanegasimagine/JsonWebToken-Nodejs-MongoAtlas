@@ -19,8 +19,22 @@ mongoose.connect(uri,
 
 // import routes
 const authRoutes = require('./routes/auth.routes');
-// route middlewares
-app.use('/api/user', authRoutes)
+const adminRoutes = require('./routes/admin.routes');
+
+// middlewares
+const validaToken = require('./middleware/validate-token');
+
+// Rutas
+app.use('/api/user', authRoutes);
+app.use('/api/admin', validaToken, adminRoutes)
+
+// Cors
+const cors = require('cors');
+var corsOptions = {
+    origin: '*', // Reemplazar con dominio
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+app.use(cors(corsOptions));
 
 // iniciar server
 const PORT = process.env.PORT || 3001;
